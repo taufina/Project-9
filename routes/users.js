@@ -40,38 +40,31 @@ const passwordValidator = check('password')
 // const users = [];
 router.get('/', authenticateUser, function(req, res, next) {
 
-  const { firstName, lastName, emailAddress } = req.currentUser;
+  // const { firstName, lastName, emailAddress } = req.currentUser;
 
-  res.json({
-    id:`${req.currentUser.id}`,
-    name: `${firstName} ${lastName}`,
-    email: emailAddress
-  });
+  return res.status(200).json({
+    userId: req.currentUser.get("id"),
+    firstName: req.currentUser.get("firstName"),
+    lastName: req.currentUser.get("lastName"),
+    emailAddress: req.currentUser.get("emailAddress")
+  })
+  // return res.status(200).json({
+  //   id:`${req.currentUser.id}`,
+  //   name: `${firstName} ${lastName}`,
+  //   email: emailAddress
+  // });
 
-  User.findAll()
-      .then(users => {
-          res.json(users);
-      })
-      .catch(err => {
-          err.statusCode = err.statusCode || 500;
-          throw err;
-      });
+  // User.findAll()
+  //     .then(users => {
+  //         res.json(users);
+  //     })
+  //     .catch(err => {
+  //         err.statusCode = err.statusCode || 500;
+  //         throw err;
+  //     });
 });
-// router.get('/', function(req, res, next){
-//   res.json(users);
-// });
 
-// router.post('/users', (req, res) => {
-//   //Get the user from the request body.
-//   const user = req.body;
-  
-//   //Add the user to the 'users' array.
-//   users.push(user);
-//   //Set the status to 201 Created and end the response.
-//   res.status(201).end();
-// });
-
-/* Posts a new course to the database */
+/* Posts a new user to the database */
 router.post('/', [
     //validation will run first, before we attempt to do anything with the request data.
     firstNameValidator, 
@@ -83,7 +76,7 @@ router.post('/', [
     const errors = validationResult(req);
 
     //If there are validation errors:
-    if(!errors.isEmpty){
+    if(!errors.isEmpty()) {
       //Use the Array 'map()' method to get a list o error messages.
       const errorMessages = errors.array().map(error=>error.msg);
 
@@ -115,14 +108,16 @@ router.post('/', [
     //   where: {}
     // })
     //use schema.create to insert data into the db
+
+    
     User.create(userData).then(()=>{
       res.location('/');
       res.status(201).end();
     }).catch(function(err){
-      if(err.name === "SequelizeValidationError"){
-        return res.status(400).json({message: "Please fill out all of the fields"})
+      if(err.name === "SequelizeUniqueConstraintError"){
+        return res.status(400).json({message: 'That email address already exists. Please try another email address.'}) //next
       } else {
-        res.status(400).json({message: 'That email address already exists. Please try another email address.'});
+        res.status(400).json({message:err.message });
         throw err;
       }
     }).catch(function(err){

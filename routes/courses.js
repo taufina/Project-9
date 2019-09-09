@@ -70,12 +70,12 @@ router.post('/', [
   titleValidator, 
   descriptionValidator, 
   userIdValidator 
-], authenticateUser, async(req, res, next)=> {
+], authenticateUser, (req, res, next)=> {
   //attempt to get the validation result from the Request object.
   const errors = validationResult(req);
 
   //If there are validation errors:
-  if(!errors.isEmpty){
+  if(!errors.isEmpty()){
     //Use the Array 'map()' method to get a list o error messages.
     const errorMessages = errors.array().map(error=>error.msg);
 
@@ -87,7 +87,7 @@ router.post('/', [
       description: req.body.description,
       userId: req.body.userId
     }
-    await Course.create(courseData).then(()=>{
+    Course.create(courseData).then(()=>{
       res.location(`/api/courses/${Course.id}`);
       res.status(201).end();
     }).catch(function(err){
@@ -180,7 +180,7 @@ router.put('/:id', [
     Course.findByPk(req.params.id).then((course) => {
         if (course) {
           if(req.currentUser.id === course.userId) {
-            course.update(req.body).then(() => res.status(204).json(course));
+            course.update(req.body).then(() => res.status(204).end());
           } else {
             res.status(403).json({message: 'Sorry, you are not authorized to edit this course.'});
           }
