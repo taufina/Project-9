@@ -4,8 +4,7 @@ const {Course} = require('../models');
 const authenticateUser = require('./authentication');
 const { check, validationResult } = require('express-validator');
 
-// const User = require("./User");
-
+//Validations
 const titleValidator = check('title')
   .exists({checkNull:true, checkFalsy:true})
   .withMessage('Please provide a value for "title"');
@@ -33,15 +32,12 @@ router.get('/', function(req, res, next) {
     }).catch(err => {res.json({message:err.message})});
   });
 
-// router.post('/', (req, res)=>{
-  
-// });
+
 
 router.get('/:id', function (req, res, next) {
     Course.findByPk(req.params.id).then((course) => {
       if(course){
         res.status(200).json(course).end();
-        // render('delete', { book: book, title: 'Delete Book' });
       } else {
         const error = new Error('No course was found.');
         error.status = 404;
@@ -52,16 +48,6 @@ router.get('/:id', function (req, res, next) {
     });
 });
 
-// router.post('/', function(req, res, next) {
-//     Course.findAll()
-//         .then(courses => {
-//             res.json(courses);
-//         })
-//         .catch(err => {
-//             err.statusCode = err.statusCode || 500;
-//             throw err;
-//         });
-// });
 
 
 /* Posts a new book to the database */
@@ -105,78 +91,25 @@ router.post('/', [
 
                       
 
-  
-
-  // Course.create(courseData).then(()=>{
-  //   res.location(`/api/courses/${course.id}`);
-  //   res.status(201).end();
-  // }).catch(function(err){
-  //   if(err.name === "SequelizeValidationError"){
-  //     return res.status(400).json({message: "Please fill out all of the fields"})
-  //   } else {
-  //     res.status(400).json({message: 'That email address already exists.  Please try another email address.'});
-  //     throw err;
-  //   }
-  // }).catch(function(err){
-  //   res.json(500, err);
-  // });
-
-
-// router.post('/', authenticateUser, (req, res, next) => {
-//   const { id } = req.currentUser;
-//   req.body.userId = id;
-
-//   Course.create(req.body)
-//     .then((course) => {
-//       if (!course) {
-//         const error = new Error('No course was created.');
-//         error.status = 400;
-//         next(error);
-//       } else {
-//         res.location(`/api/courses/${course.id}`);
-//         res.status(201).end();
-//       }
-//     }).catch((err) => {
-//       if (err.name === "SequelizeValidationError") {
-//         const error = new Error(err.message);
-//         error.status = 400;
-//         next(error);
-//       }
-//     });
-// });
-
 //EDIT COURSE
 
 router.put('/:id', [
   // Validations
-  check('title')
-    .exists({ checkNull: true, checkFalsy: true })
-    .withMessage('Please provide a value for "title"'),
-  check('description')
-    .exists({ checkNull: true, checkFalsy: true })
-    .withMessage('Please provide a value for "description"'),
-  check('userId')
-    .exists({ checkNull: true, checkFalsy: true })
-    .withMessage('Please provide a value for "userId"')
+  titleValidator, 
+  descriptionValidator, 
+  userIdValidator 
 ], authenticateUser, (req, res, next) => {
 
   const errors = validationResult(req);
 
   // If there are validation errors...
-  if (!errors.isEmpty()) {
-    // Use the Array `map()` method to get a list of error messages.
-    const errorMessages = errors.array().map(error => error.msg);
+  if(!errors.isEmpty()){
+    //Use the Array 'map()' method to get a list o error messages.
+    const errorMessages = errors.array().map(error=>error.msg);
 
-    // Return the validation errors to the client.
-    const err = new Error(errorMessages);
-    err.status = 400;
-    next(err);  
+    //Return the validation errors to the client.
+    return res.status(400).json({errors:errorMessages}); 
   } else {
-  //const id = req.params.id;
-  //const course = req.body;
-  // if(course && course._id !==id){
-  //   return res.status(500).json({err: "ids don't match"})
-  // }
     Course.findByPk(req.params.id).then((course) => {
         if (course) {
           if(req.currentUser.id === course.userId) {
