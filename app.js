@@ -18,6 +18,25 @@ const coursesRouter = require('./routes/courses');
 
 const app = express();  //create express app
 
+
+(async () => {
+  try {
+    
+    // This will Test the connection to the database and log it to console//
+    await sequelize.authenticate();
+    console.log('Connection to the database was successful');
+
+    // Sync the models
+    await sequelize.sync();
+    console.log('Models are synchronized with the database');
+
+  }catch(err){
+    
+    console.log('Connection to the database was unsuccessful' + ' ' + err)
+
+  }
+})()
+
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'jade');

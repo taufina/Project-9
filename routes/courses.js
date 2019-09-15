@@ -8,7 +8,7 @@ const { check, validationResult } = require('express-validator');
 const titleValidator = check('title')
   .exists({checkNull:true, checkFalsy:true})
   .withMessage('Please provide a value for "title"');
-const descriptionValidator = check('lastName')
+const descriptionValidator = check('description')
   .exists({checkNull:true, checkFalsy:true})
   .withMessage('Please provide a value for "description"');
 const userIdValidator = check('userId')
@@ -25,6 +25,7 @@ router.get('/', function(req, res, next) {
         if (courses) {
           res.json(courses);
         } else {
+          console.log('Could not find courses.');
           const error = new Error('Could not find courses.');
           error.status = 400;
           next(error);
@@ -66,13 +67,18 @@ router.post('/', [
     const errorMessages = errors.array().map(error=>error.msg);
 
     //Return the validation errors to the client.
+    // const error = new Error(errorMessages);
+    // error.status = 400;
+    // next(error);
     return res.status(400).json({errors:errorMessages});
+
+
   } else {
-    const courseData = {
-      title: req.body.title,
-      description: req.body.description,
-      userId: req.body.userId
-    }
+  const courseData = {
+    title: req.body.title,
+    description: req.body.description,
+    userId: req.body.userId
+  }
     Course.create(courseData).then(()=>{
       res.location(`/api/courses/${Course.id}`);
       res.status(201).end();
@@ -108,7 +114,12 @@ router.put('/:id', [
     const errorMessages = errors.array().map(error=>error.msg);
 
     //Return the validation errors to the client.
-    return res.status(400).json({errors:errorMessages}); 
+    // const error = new Error(errorMessages);
+    // error.status = 400;
+    // next(error);
+    return res.status(400).json({errors:errorMessages});
+
+     
   } else {
     Course.findByPk(req.params.id).then((course) => {
         if (course) {
