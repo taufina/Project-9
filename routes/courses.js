@@ -4,6 +4,14 @@ const {Course} = require('../models');
 const authenticateUser = require('./authentication');
 const { check, validationResult } = require('express-validator');
 
+const filterOut = {
+  include: [{
+    model: User,
+    attributes: {exclude: ['password', 'createdAt', 'updatedAt']}
+  }],
+  attributes: {exclude: ['createdAt', 'updatedAt']}
+};
+
 //Validations
 const titleValidator = check('title')
   .exists({checkNull:true, checkFalsy:true})
@@ -18,9 +26,7 @@ const userIdValidator = check('userId')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  Course.findAll({
-    attributes: { exclude: ['createdAt', 'updatedAt'] }
-  })
+  Course.findAll(filterOut)
     .then(courses => {
         if (courses) {
           res.json(courses);
@@ -36,7 +42,7 @@ router.get('/', function(req, res, next) {
 
 
 router.get('/:id', function (req, res, next) {
-    Course.findByPk(req.params.id).then((course) => {
+    Course.findByPk(filterOut, req.params.id).then((course) => {
       if(course){
         res.status(200).json(course).end();
       } else {
@@ -71,16 +77,14 @@ router.post('/', [
     // error.status = 400;
     // next(error);
     return res.status(400).json({errors:errorMessages});
-
-
   } else {
   const courseData = {
     title: req.body.title,
     description: req.body.description,
     userId: req.body.userId
   }
-    Course.create(courseData).then(()=>{
-      res.location(`/api/courses/${Course.id}`);
+    Course.create(courseData).then((course)=>{
+      res.location(`/api/courses/${course.id}`);
       res.status(201).end();
     }).catch(function(err){
       if(err.name === "SequelizeValidationError"){
