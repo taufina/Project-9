@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {Course} = require('../models');
+const {Course, User} = require('../models');
 const authenticateUser = require('./authentication');
 const { check, validationResult } = require('express-validator');
 
@@ -42,13 +42,13 @@ router.get('/', function(req, res, next) {
 
 
 router.get('/:id', function (req, res, next) {
-    Course.findByPk(filterOut, req.params.id).then((course) => {
+    Course.findByPk(req.params.id, filterOut).then((course) => {
       if(course){
         res.status(200).json(course).end();
       } else {
         const error = new Error('No course was found.');
         error.status = 404;
-        next(error);      
+        next(error);
       }
     }).catch(function(err){
       res.send(500);
